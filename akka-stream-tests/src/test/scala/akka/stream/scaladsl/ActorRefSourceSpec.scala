@@ -44,7 +44,7 @@ class ActorRefSourceSpec extends AkkaSpec {
       for (n ← 300 to 399) s.expectNext(n)
     }
 
-    "terminate when the stream is cancelled" in {
+    "terminate when the stream is cancelled" in StreamTestKit.checkThatAllStagesAreStopped {
       val s = StreamTestKit.SubscriberProbe[Int]()
       val ref = Source.actorRef(0, OverflowStrategy.fail).to(Sink(s)).run()
       watch(ref)
@@ -53,7 +53,7 @@ class ActorRefSourceSpec extends AkkaSpec {
       expectTerminated(ref)
     }
 
-    "complete the stream when receiving PoisonPill" in {
+    "complete the stream when receiving PoisonPill" in StreamTestKit.checkThatAllStagesAreStopped {
       val s = StreamTestKit.SubscriberProbe[Int]()
       val ref = Source.actorRef(10, OverflowStrategy.fail).to(Sink(s)).run()
       val sub = s.expectSubscription
@@ -61,7 +61,7 @@ class ActorRefSourceSpec extends AkkaSpec {
       s.expectComplete()
     }
 
-    "complete the stream when receiving Status.Success" in {
+    "complete the stream when receiving Status.Success" in StreamTestKit.checkThatAllStagesAreStopped {
       val s = StreamTestKit.SubscriberProbe[Int]()
       val ref = Source.actorRef(10, OverflowStrategy.fail).to(Sink(s)).run()
       val sub = s.expectSubscription
@@ -69,7 +69,7 @@ class ActorRefSourceSpec extends AkkaSpec {
       s.expectComplete()
     }
 
-    "fail the stream when receiving Status.Failure" in {
+    "fail the stream when receiving Status.Failure" in StreamTestKit.checkThatAllStagesAreStopped {
       val s = StreamTestKit.SubscriberProbe[Int]()
       val ref = Source.actorRef(10, OverflowStrategy.fail).to(Sink(s)).run()
       val sub = s.expectSubscription

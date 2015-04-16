@@ -11,6 +11,10 @@ import org.reactivestreams.{ Publisher, Subscriber, Subscription }
 import scala.concurrent.duration.FiniteDuration
 import akka.actor.DeadLetterSuppression
 import scala.util.control.NoStackTrace
+import akka.stream.FlowMaterializer
+import akka.stream.impl.ActorFlowMaterializerImpl
+import akka.stream.impl.StreamSupervisor
+import akka.actor.ActorRef
 
 object StreamTestKit {
 
@@ -174,4 +178,20 @@ object StreamTestKit {
   }
 
   case class TE(message: String) extends RuntimeException(message) with NoStackTrace
+
+  def checkThatAllStagesAreStopped[T](block: ⇒ T)(implicit materializer: FlowMaterializer): T =
+    materializer match {
+      case impl: ActorFlowMaterializerImpl ⇒
+        impl.supervisor ! StreamSupervisor.StopChildren
+        val result = block
+        val probe = TestProbe()(impl.system)
+        probe.awaitAssert {
+          impl.supervisor.tell(StreamSupervisor.GetChildren, probe.ref)
+          val children = probe.expectMsgType[StreamSupervisor.Children].children
+          assert(children.isEmpty,
+            s"expected no StreamSupervisor children, but got [${children.mkString(", ")}]")
+        }
+        result
+      case _ ⇒ block
+    }
 }
