@@ -7,6 +7,7 @@ import akka.stream.ActorFlowMaterializer
 
 import akka.stream.ActorFlowMaterializerSettings
 import akka.stream.testkit.{ AkkaSpec, StreamTestKit }
+import akka.stream.testkit.StreamTestKit.checkThatAllStagesAreStopped
 
 class GraphBalanceSpec extends AkkaSpec {
 
@@ -18,7 +19,7 @@ class GraphBalanceSpec extends AkkaSpec {
   "A balance" must {
     import FlowGraph.Implicits._
 
-    "balance between subscribers which signal demand" in {
+    "balance between subscribers which signal demand" in checkThatAllStagesAreStopped {
       val c1 = StreamTestKit.SubscriberProbe[Int]()
       val c2 = StreamTestKit.SubscriberProbe[Int]()
 
@@ -72,7 +73,7 @@ class GraphBalanceSpec extends AkkaSpec {
       s2.expectComplete()
     }
 
-    "support waiting for demand from all non-cancelled downstream subscriptions" in {
+    "support waiting for demand from all non-cancelled downstream subscriptions" in checkThatAllStagesAreStopped {
       val s1 = StreamTestKit.SubscriberProbe[Int]()
 
       val (p2, p3) = FlowGraph.closed(Sink.publisher[Int], Sink.publisher[Int])(Keep.both) { implicit b ⇒
@@ -141,7 +142,7 @@ class GraphBalanceSpec extends AkkaSpec {
       Await.result(r3, 3.seconds) should be(numElementsForSink +- 2000)
     }
 
-    "produce to second even though first cancels" in {
+    "produce to second even though first cancels" in checkThatAllStagesAreStopped {
       val c1 = StreamTestKit.SubscriberProbe[Int]()
       val c2 = StreamTestKit.SubscriberProbe[Int]()
 
@@ -162,7 +163,7 @@ class GraphBalanceSpec extends AkkaSpec {
       c2.expectComplete()
     }
 
-    "produce to first even though second cancels" in {
+    "produce to first even though second cancels" in checkThatAllStagesAreStopped {
       val c1 = StreamTestKit.SubscriberProbe[Int]()
       val c2 = StreamTestKit.SubscriberProbe[Int]()
 
@@ -183,7 +184,7 @@ class GraphBalanceSpec extends AkkaSpec {
       c1.expectComplete()
     }
 
-    "cancel upstream when downstreams cancel" in {
+    "cancel upstream when downstreams cancel" in checkThatAllStagesAreStopped {
       val p1 = StreamTestKit.PublisherProbe[Int]()
       val c1 = StreamTestKit.SubscriberProbe[Int]()
       val c2 = StreamTestKit.SubscriberProbe[Int]()

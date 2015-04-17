@@ -10,6 +10,7 @@ import akka.stream.testkit.AkkaSpec
 import akka.stream.testkit.StreamTestKit
 import akka.actor.PoisonPill
 import akka.actor.Status
+import akka.stream.testkit.StreamTestKit.checkThatAllStagesAreStopped
 
 class ActorRefSourceSpec extends AkkaSpec {
   implicit val mat = ActorFlowMaterializer()
@@ -44,7 +45,7 @@ class ActorRefSourceSpec extends AkkaSpec {
       for (n ← 300 to 399) s.expectNext(n)
     }
 
-    "terminate when the stream is cancelled" in StreamTestKit.checkThatAllStagesAreStopped {
+    "terminate when the stream is cancelled" in checkThatAllStagesAreStopped {
       val s = StreamTestKit.SubscriberProbe[Int]()
       val ref = Source.actorRef(0, OverflowStrategy.fail).to(Sink(s)).run()
       watch(ref)
@@ -53,7 +54,7 @@ class ActorRefSourceSpec extends AkkaSpec {
       expectTerminated(ref)
     }
 
-    "complete the stream when receiving PoisonPill" in StreamTestKit.checkThatAllStagesAreStopped {
+    "complete the stream when receiving PoisonPill" in checkThatAllStagesAreStopped {
       val s = StreamTestKit.SubscriberProbe[Int]()
       val ref = Source.actorRef(10, OverflowStrategy.fail).to(Sink(s)).run()
       val sub = s.expectSubscription
@@ -61,7 +62,7 @@ class ActorRefSourceSpec extends AkkaSpec {
       s.expectComplete()
     }
 
-    "complete the stream when receiving Status.Success" in StreamTestKit.checkThatAllStagesAreStopped {
+    "complete the stream when receiving Status.Success" in checkThatAllStagesAreStopped {
       val s = StreamTestKit.SubscriberProbe[Int]()
       val ref = Source.actorRef(10, OverflowStrategy.fail).to(Sink(s)).run()
       val sub = s.expectSubscription
@@ -69,7 +70,7 @@ class ActorRefSourceSpec extends AkkaSpec {
       s.expectComplete()
     }
 
-    "fail the stream when receiving Status.Failure" in StreamTestKit.checkThatAllStagesAreStopped {
+    "fail the stream when receiving Status.Failure" in checkThatAllStagesAreStopped {
       val s = StreamTestKit.SubscriberProbe[Int]()
       val ref = Source.actorRef(10, OverflowStrategy.fail).to(Sink(s)).run()
       val sub = s.expectSubscription
