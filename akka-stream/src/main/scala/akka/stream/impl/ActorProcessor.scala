@@ -122,6 +122,7 @@ private[akka] abstract class BatchingInputBuffer(val size: Int, val pump: Pump) 
       upstream.request(inputBuffer.length)
       subreceive.become(upstreamRunning)
     }
+    pump.gotUpstreamSubscription()
   }
 
   protected def onError(e: Throwable): Unit = {
