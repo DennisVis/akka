@@ -181,7 +181,7 @@ private[akka] trait Pump {
       currentAction = phase.action
   }
 
-  def isPumpFinished: Boolean = transferState.isCompleted
+  final def isPumpFinished: Boolean = transferState.isCompleted
 
   protected final val completedPhase = TransferPhase(Completed) {
     () ⇒ throw new IllegalStateException("The action of completed phase must be never executed")
